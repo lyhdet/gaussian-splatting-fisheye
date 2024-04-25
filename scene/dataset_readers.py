@@ -23,17 +23,32 @@ from plyfile import PlyData, PlyElement
 from utils.sh_utils import SH2RGB
 from scene.gaussian_model import BasicPointCloud
 
-class CameraInfo(NamedTuple):
-    uid: int
-    R: np.array
-    T: np.array
-    FovY: np.array
-    FovX: np.array
-    image: np.array
-    image_path: str
-    image_name: str
-    width: int
-    height: int
+# class CameraInfo(NamedTuple):
+#     uid: int
+#     R: np.array
+#     T: np.array
+#     FovY: np.array
+#     FovX: np.array
+#     image: np.array
+#     image_path: str
+#     image_name: str
+#     width: int
+#     height: int
+
+
+# Yuheng: Replace NamedTuple with Class, because NamedTuple is unable to modify
+class CameraInfo:
+    def __init__(self, uid, R, T, FovY, FovX, image, image_path, image_name, width, height):
+        self.uid = uid
+        self.R = R
+        self.T = T
+        self.FovY = FovY
+        self.FovX = FovX
+        self.image = image
+        self.image_path = image_path
+        self.image_name = image_name
+        self.width = width
+        self.height = height
 
 class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
@@ -151,6 +166,9 @@ def readColmapSceneInfo(path, images, eval, llffhold=8):
     else:
         train_cam_infos = cam_infos
         test_cam_infos = []
+
+    # Yuheng: For quick debug
+    # train_cam_infos = train_cam_infos[26:28]
 
     nerf_normalization = getNerfppNorm(train_cam_infos)
 

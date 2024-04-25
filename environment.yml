@@ -1,7 +1,9 @@
 name: gaussian_splatting
 channels:
-  - pytorch
-  - conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
   - defaults
 dependencies:
   - cudatoolkit=11.6
@@ -12,6 +14,3 @@ dependencies:
   - torchaudio=0.12.1
   - torchvision=0.13.1
   - tqdm
-  - pip:
-    - submodules/diff-gaussian-rasterization
-    - submodules/simple-knn

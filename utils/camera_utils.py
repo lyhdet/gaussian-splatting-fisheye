@@ -16,6 +16,68 @@ from utils.graphics_utils import fov2focal
 
 WARNED = False
 
+import numpy as np
+
+def Rot(angle, axis):
+    theta = np.radians(angle)
+    
+    if axis == 'x':
+        rotation_matrix = np.array([
+            [1, 0, 0],
+            [0, np.cos(theta), -np.sin(theta)],
+            [0, np.sin(theta), np.cos(theta)]
+        ])
+    elif axis == 'y':
+        rotation_matrix = np.array([
+            [np.cos(theta), 0, np.sin(theta)],
+            [0, 1, 0],
+            [-np.sin(theta), 0, np.cos(theta)]
+        ])
+    elif axis == 'z':
+        rotation_matrix = np.array([
+            [np.cos(theta), -np.sin(theta), 0],
+            [np.sin(theta), np.cos(theta), 0],
+            [0, 0, 1]
+        ])
+    else:
+        raise ValueError("Invalid axis. Please use 'x', 'y', or 'z'.")
+
+    return rotation_matrix
+
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       return v
+    return v / norm
+
+def rodrigues_rotation_matrix(axis, theta):
+    axis = normalize(axis)
+    K = np.array([
+        [0, -axis[2], axis[1]],
+        [axis[2], 0, -axis[0]],
+        [-axis[1], axis[0], 0]
+    ])
+    return np.eye(3) + np.sin(theta) * K + (1 - np.cos(theta)) * (K @ K)
+
+def direction_to_rotation_matrix(direction):
+    direction = normalize(direction)
+    z_axis = np.array([0, 0, 1])
+    
+    if np.allclose(direction, z_axis):
+        return np.eye(3)  # No rotation needed
+    if np.allclose(direction, -z_axis):
+        # 180 degree rotation around x-axis
+        return np.array([
+            [1, 0, 0],
+            [0, -1, 0],
+            [0, 0, -1]
+        ])
+    
+    axis = np.cross(z_axis, direction)
+    theta = np.arccos(np.dot(z_axis, direction))
+    
+    return rodrigues_rotation_matrix(axis, theta)
+
 def loadCam(args, id, cam_info, resolution_scale):
     orig_w, orig_h = cam_info.image.size
 
@@ -45,6 +107,15 @@ def loadCam(args, id, cam_info, resolution_scale):
 
     if resized_image_rgb.shape[1] == 4:
         loaded_mask = resized_image_rgb[3:4, ...]
+    
+    # cam_info.R = Rot(-30,"x")
+    # Yuheng: We can control the view orientation here
+    direction = np.array([0, 0, 1])
+    rotation_matrix = direction_to_rotation_matrix(direction)
+    
+    cam_info.R = rotation_matrix @ cam_info.R
+    cam_info.T = rotation_matrix @ cam_info.T
+    cam_info.R = cam_info.R.T
 
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
